@@ -7,64 +7,82 @@
 
 import SwiftUI
 
+let animals = ["🐶","🐶","🐱","🐱","🐻","🐻","🦊","🦊", "🐸", "🐸", "🐰", "🐰"]
+let flowers = ["🌸","🌸","🌼","🌼","🌺","🌺","🌻","🌻"]
+let food = ["🍔","🍔","🌮","🌮","🍟","🍟","🍕","🍕","🍗","🍗","🌯","🌯","🥪","🥪","🥨","🥨","🥞","🥞","🧀","🧀"]
+
 struct ContentView: View {
-    let emojis = ["👻","🎃","🕷️","😈", "💀", "🕸️", "🧙‍♀️", "🙀", "👹", "😱", "☠️", "🍭"]
     
-    @State var cardCount: Int = 4
+    var themeMap =
+        ["Animals": animals,
+         "Flowers": flowers,
+         "Food": food
+        ]
+    
+    @State var currentEmojis: [String] = animals
     
     var body: some View {
         VStack {
+            Text("Memorize!").font(.largeTitle)
             ScrollView {
                 cards
             }
             Spacer()
-            cardCountAdjusters
+            themeSelectors
         }
         .padding()
     }
     
-    var cardCountAdjusters: some View {
-        HStack {
-            cardRemover
-            Spacer()
-            cardAdder
-        }
-        .imageScale(.large)
-        .font(.largeTitle)
-    }
-    
     var cards: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) {
-            ForEach(0..<cardCount, id: \.self) {
-                CardView(content: emojis[$0])
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 65))]) {
+            let cards = currentEmojis.shuffled()
+            ForEach(0..<cards.count, id: \.self) {
+                CardView(content: cards[$0])
                     .aspectRatio(2/3, contentMode: .fit)
             }
         }
         .foregroundColor(.orange)
     }
     
-    func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
+    var themeSelectors: some View {
+        HStack(spacing: 40) {
+            Spacer()
+            animalsSelector
+            flowersSelector
+            foodSelector
+            Spacer()
+        }
+        .imageScale(.large)
+        
+    }
+    
+    func createThemeSelector(theme: String, symbol: String) -> some View {
         Button(action: {
-            guard cardCount + offset > 0 && cardCount + offset <= emojis.count else { return }
-            cardCount += offset
+            currentEmojis = themeMap[theme] ?? []
         }, label: {
-            Image(systemName: symbol)
+            VStack {
+                Image(systemName: symbol)
+                Text(theme)
+            }
         })
-        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
     }
     
-    var cardRemover: some View {
-        cardCountAdjuster(by: -1, symbol: "rectangle.stack.badge.minus.fill")
+    var animalsSelector: some View {
+        createThemeSelector(theme: "Animals", symbol: "dog.fill")
     }
     
-    var cardAdder: some View {
-        cardCountAdjuster(by: 1, symbol: "rectangle.stack.badge.plus.fill")
+    var flowersSelector: some View {
+        createThemeSelector(theme: "Flowers", symbol: "sun.max.fill")
+    }
+    
+    var foodSelector: some View {
+        createThemeSelector(theme: "Food", symbol: "takeoutbag.and.cup.and.straw.fill")
     }
 }
 
 struct CardView: View {
     let content: String
-    @State var isFaceUp = true
+    @State var isFaceUp = false
     
     var body: some View {
         ZStack {
